@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdvisoryFeed — CVE Intelligence Newsletter</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #e63946;
+    --blue: #58a6ff; --green: #3fb950; --mono: 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1rem 2rem;
+    text-align: center;
+  }
+  .brand { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase;
+             color: var(--accent); font-family: var(--mono); margin-bottom: .6rem; }
+  h1 { font-size: 2rem; font-weight: 700; margin-bottom: .4rem; }
+  .tagline { color: var(--muted); font-size: .92rem; }
+
+  main { max-width: 720px; margin: 2.5rem auto; padding: 0 1rem; }
+
+  .section-label {
+    font-size: .65rem; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--muted); font-family: var(--mono);
+    margin-bottom: 1.2rem; padding-bottom: .4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.3rem 1.4rem;
+    margin-bottom: 1rem; transition: border-color .15s, transform .15s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  .card-meta {
+    display: flex; gap: .6rem; align-items: center;
+    font-size: .72rem; color: var(--muted); margin-bottom: .5rem;
+  }
+  .date { font-family: var(--mono); }
+  .pill {
+    background: rgba(255,255,255,.06); border: 1px solid var(--border);
+    border-radius: 20px; padding: .15rem .55rem;
+  }
+  .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: .35rem; }
+  .card-preview { font-size: .85rem; color: var(--muted); margin-bottom: .6rem; line-height: 1.5; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .tag {
+    background: rgba(88,166,255,.1); border: 1px solid rgba(88,166,255,.3);
+    color: var(--blue); font-size: .68rem; padding: .12rem .45rem;
+    border-radius: 4px; font-family: var(--mono);
+  }
+
+  .empty { color: var(--muted); text-align: center; padding: 3rem 0; }
+
+  footer {
+    text-align: center; padding: 2.5rem 1rem;
+    font-size: .75rem; color: var(--muted);
+    border-top: 1px solid var(--border); margin-top: 3rem;
+  }
+  footer a { color: var(--blue); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">⚡ Detection-First CVE Intelligence</div>
+  <h1>AdvisoryFeed</h1>
+  <p class="tagline">Premium security analysis for defenders — every critical CVE, every week.</p>
+</header>
+
+<main>
+  <div class="section-label">All Issues — 1 published</div>
+  
+    <a class="card" href="issues/2026-05-30_item14/">
+      <div class="card-meta">
+        <span class="date">2026-05-30</span>
+        <span class="pill">⏱ 8 min</span>
+      </div>
+      <div class="card-title">Drupal SQL Injection Flaw: What You Need to Know Now</div>
+      <div class="card-preview">CVE-2026-9082 is being exploited in the wild - here's my expert take</div>
+      <div class="card-tags"><span class="tag">Drupal</span> <span class="tag">SQL Injection</span> <span class="tag">CVE-2026-9082</span></div>
+    </a>
+</main>
+
+<footer>
+  Built with the CVE Blog Pipeline ·
+  <a href="https://github.com/ayushi051094">GitHub</a>
+</footer>
+
+</body>
+</html>

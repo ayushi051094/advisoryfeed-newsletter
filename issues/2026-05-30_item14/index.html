@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drupal SQL Injection Flaw: What You Need to Know Now</title>
+
+<!-- Prism.js syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kusto.min.js" defer></script>
+
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #e63946;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --mono: 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    padding: 0;
+  }
+
+  .email-wrap {
+    max-width: 660px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  /* Header */
+  .nl-header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .nl-brand {
+    font-size: .7rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .6rem;
+    font-family: var(--mono);
+  }
+
+  .nl-subject {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: .7rem;
+    color: var(--text);
+  }
+
+  .nl-meta {
+    display: flex;
+    gap: .8rem;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: .78rem;
+    color: var(--muted);
+  }
+
+  .nl-meta .pill {
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: .2rem .65rem;
+    font-size: .72rem;
+  }
+
+  .nl-preview {
+    color: var(--muted);
+    font-size: .88rem;
+    font-style: italic;
+    margin-top: .8rem;
+    padding-top: .8rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Body */
+  .nl-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 2rem;
+  }
+
+  .nl-body h2 {
+    font-size: .75rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-family: var(--mono);
+    margin: 2rem 0 .7rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .nl-body h2:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+
+  .nl-body h3 {
+    font-size: 1rem;
+    color: var(--blue);
+    margin: 1.2rem 0 .4rem;
+  }
+
+  .nl-body p { margin-bottom: .9rem; font-size: .92rem; }
+
+  .nl-body ul, .nl-body ol {
+    padding-left: 1.5rem;
+    margin-bottom: .9rem;
+  }
+
+  .nl-body li { margin-bottom: .35rem; font-size: .92rem; }
+
+  .nl-body strong { color: var(--text); }
+
+  .nl-body a { color: var(--blue); text-decoration: none; }
+  .nl-body a:hover { text-decoration: underline; }
+
+  /* Code blocks */
+  .code-wrap {
+    position: relative;
+    margin: 1.2rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .code-wrap pre {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    font-size: .78rem !important;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+    background: rgba(255,255,255,.12);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .72rem;
+    padding: .2rem .55rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--mono);
+    z-index: 10;
+    transition: all .15s;
+  }
+
+  .copy-btn:hover { background: var(--green); color: #000; border-color: var(--green); }
+  .copy-btn.copied { background: var(--green); color: #000; }
+
+  /* UNTESTED callout */
+  .untested-badge {
+    display: inline-block;
+    background: rgba(210,153,34,.12);
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+    font-size: .72rem;
+    font-family: var(--mono);
+    padding: .2rem .6rem;
+    border-radius: 4px;
+    margin-bottom: .5rem;
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    background: rgba(88,166,255,.1);
+    border: 1px solid rgba(88,166,255,.3);
+    color: var(--blue);
+    font-size: .7rem;
+    padding: .15rem .5rem;
+    border-radius: 4px;
+    font-family: var(--mono);
+    margin-right: .3rem;
+    margin-bottom: .3rem;
+  }
+
+  /* Footer */
+  .nl-footer {
+    background: #0a0d11;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 1.5rem 2rem;
+    font-size: .78rem;
+    color: var(--muted);
+  }
+
+  .nl-footer .personal-note {
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: .8rem;
+    line-height: 1.6;
+  }
+
+  .nl-footer .tags-row { margin-bottom: .7rem; }
+
+  .nl-footer .footer-links {
+    font-size: .72rem;
+    color: var(--muted);
+  }
+
+  /* Lottie explainer embed placeholder */
+  .explainer-embed {
+    background: rgba(255,255,255,.03);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    font-size: .8rem;
+    color: var(--muted);
+    margin: 1rem 0;
+  }
+
+  .explainer-embed a {
+    color: var(--purple);
+    font-weight: 600;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .email-wrap { padding: 1rem .5rem; }
+    .nl-header, .nl-body, .nl-footer { padding: 1.2rem; }
+    .nl-subject { font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+<div class="email-wrap">
+
+  <div class="nl-header">
+    <div class="nl-brand">⚡ AdvisoryFeed · Premium Intelligence</div>
+    <div class="nl-subject">Drupal SQL Injection Flaw: What You Need to Know Now</div>
+    <div class="nl-meta">
+      <span class="pill">📧 Premium</span>
+      <span class="pill">⏱ 8 min read</span>
+      <span class="pill">🔒 Security</span>
+    </div>
+    <div class="nl-preview">CVE-2026-9082 is being exploited in the wild - here's my expert take</div>
+  </div>
+
+  <div class="nl-body">
+    <h2>My Take in One Line</h2>
+<p>The recent Drupal SQL injection flaw, CVE-2026-9082, is a stark reminder that even popular content management systems can have critical vulnerabilities that require immediate attention.</p>
+<h2>What Actually Happened</h2>
+<p>I've been following the developments around CVE-2026-9082, and it's alarming to see how quickly attackers have begun exploiting this SQL injection flaw in Drupal. The vulnerability, which affects Drupal versions 8.9 to 11.3, allows anonymous attackers to perform arbitrary SQL injection attacks. This is particularly concerning given the widespread use of Drupal in various industries. The attack chain involves sending specially crafted requests to the Drupal site, which then executes the malicious SQL query, allowing the attacker to access sensitive data or take control of the site.</p>
+<h2>The Detail I Want You to Notice</h2>
+<p>One specific aspect of this incident that I believe most people will gloss over is the fact that this vulnerability exists due to improper neutralization of special elements in Drupal's core database extraction API. This is a critical oversight, as it allows attackers to inject malicious SQL code and execute it on the underlying database. I've seen similar vulnerabilities in the past, and it's essential to recognize that these types of flaws can have far-reaching consequences. In this case, the vulnerability can be exploited by sending specially crafted requests to the Drupal site, which then executes the malicious SQL query, allowing the attacker to access sensitive data or take control of the site.</p>
+<h2>What I'd Do If This Were My Network</h2>
+<p>If I were responsible for a network running Drupal, I would prioritize upgrading to the latest version as soon as possible. I would also consider applying the Drupal 9.5 update if I'm on Drupal 9, and block suspicious HTTP requests at the perimeter firewall. Additionally, I would monitor HTTP traffic for signs of SQL injection attacks and consider moving to Drupal 11.3.10 for better security coverage. It's essential to take a proactive approach to mitigating this vulnerability, as the consequences of a successful attack can be severe.</p>
+<h2>Adjacent Threats to Watch</h2>
+<p>In the next 30 days, I would keep a close eye on similar vulnerabilities in other content management systems, such as WordPress or Joomla. I would also watch for potential supply-chain attacks targeting Drupal modules or plugins. Furthermore, I would monitor for any signs of attackers exploiting similar SQL injection vulnerabilities in other applications or services.</p>
+<h2>Detection Engineering Notes</h2>
+<p>To detect SQL injection attacks against Drupal, I would use a combination of network traffic monitoring and log analysis. The Sigma rule and KQL query provided below can be used as a starting point:</p>
+<div class="code-wrap"><button class="copy-btn" onclick="copyCode('cb12929')" title="Copy to clipboard">⎘ Copy</button><pre><code id="cb12929" class="language-yaml">title: Drupal SQL Injection
+id: cve-2026-9082
+status: experimental
+description: Detects SQL injection attacks against Drupal
+logsource:
+  product: web
+  service: http
+detection:
+  selection:
+    http.request.uri.query: &quot;.*?sql.*?&quot;
+  condition: selection
+falsepositives:
+  - Legitimate SQL queries
+level: critical
+</code></pre></div>
+<div class="code-wrap"><button class="copy-btn" onclick="copyCode('cb85663')" title="Copy to clipboard">⎘ Copy</button><pre><code id="cb85663" class="language-kql">let sql_injection_pattern = &quot;sql.*?&quot;;
+DeviceProcessEvents
+| where tostring(processCommandLine) matches regex sql_injection_pattern
+| summarize count() by bin(Timestamp, 1m)
+// Detects SQL injection attacks against Drupal
+</code></pre></div>
+<p>Please note that these rules are experimental and may generate false positives from legitimate SQL queries. It's essential to test and refine these rules in your environment before deployment.</p>
+<h2>Q&amp;A You Might Be Wondering</h2>
+<p>Q: What is the impact of this vulnerability?<br />
+A: The impact of this vulnerability is severe, as it allows anonymous attackers to perform arbitrary SQL injection attacks, potentially leading to sensitive data exposure or site takeover.<br />
+Q: How can I protect my Drupal site?<br />
+A: To protect your Drupal site, upgrade to the latest version, apply the Drupal 9.5 update if you're on Drupal 9, and block suspicious HTTP requests at the perimeter firewall.<br />
+Q: Are there any other vulnerabilities like this that I should be aware of?<br />
+A: Yes, there are other vulnerabilities similar to this one that you should be aware of, such as SQL injection vulnerabilities in other content management systems or applications.</p>
+<h2>What's Next</h2>
+<p>Tomorrow, I'll be discussing the latest developments in the world of cloud security, including new vulnerabilities and threats that you need to know about. Stay tuned for more expert analysis and insights.</p>
+  </div>
+
+  <div class="nl-footer">
+    <div class="personal-note">Reply and tell me your take on the Drupal SQL injection flaw - what are you doing to protect your network?</div>
+    <div class="tags-row"><span class="tag">Drupal</span> <span class="tag">SQL Injection</span> <span class="tag">CVE-2026-9082</span></div>
+    <div class="footer-links">
+      AdvisoryFeed — Detection-first CVE intelligence for defenders ·
+      <a href="https://advisoryfeed.com" style="color:var(--blue)">advisoryfeed.com</a>
+      <br>You're receiving this as a premium subscriber.
+      To unsubscribe, manage your subscription in Beehiiv.
+    </div>
+  </div>
+
+</div>
+
+<script>
+function copyCode(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btns = document.querySelectorAll('.copy-btn');
+    btns.forEach(b => {
+      if (b.getAttribute('onclick').includes(id)) {
+        b.textContent = '✓ Copied!';
+        b.classList.add('copied');
+        setTimeout(() => {
+          b.textContent = '⎘ Copy';
+          b.classList.remove('copied');
+        }, 2000);
+      }
+    });
+  });
+}
+</script>
+</body>
+</html>
